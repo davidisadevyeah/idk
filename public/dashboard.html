@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MXDNIGHT Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;--bg2:#0e0e1a;--bg3:#141426;
+  --border:#1e1e38;--border2:#2a2a4a;
+  --accent:#7c3aed;--accent2:#a855f7;
+  --cyan:#06b6d4;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--orange:#f97316;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#475569;
+  --ff:'Syne',sans-serif;--fm:'Space Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--ff);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:var(--ff);border:none;outline:none;transition:all .15s}
+input,textarea,select{font-family:var(--ff);background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:8px 12px;outline:none;transition:border-color .2s;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:.02em;transition:all .15s;cursor:pointer}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-cyan{background:var(--cyan);color:#000}.btn-cyan:hover{filter:brightness(1.15)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{filter:brightness(1.15)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red)}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-owner{background:linear-gradient(135deg,var(--orange),var(--red));color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.badge-green{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.badge-purple{background:rgba(124,58,237,.15);color:var(--accent2);border:1px solid rgba(124,58,237,.3)}
+.badge-cyan{background:rgba(6,182,212,.15);color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
+.badge-orange{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.4)}
+.fm{font-family:var(--fm)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fadeIn .25s ease forwards}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .7s linear infinite}
+.spinner{width:24px;height:24px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;display:inline-block}
+
+/* Layout */
+#app{min-height:100vh;display:flex;flex-direction:column}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,.12),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(6,182,212,.08),transparent 60%),var(--bg)}
+#guild-screen{display:none;min-height:100vh}
+#dash-screen{display:none;flex:1;display:none}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:rgba(14,14,26,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.logo-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+
+/* Sidebar */
+.dash-layout{display:flex;min-height:calc(100vh - 53px)}
+.sidebar{width:210px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:calc(100vh - 53px);position:sticky;top:53px;overflow:hidden}
+.sidebar-nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text2);border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(124,58,237,.08)}
+.nav-item.active{color:#fff;background:rgba(124,58,237,.15);border-left-color:var(--accent)}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.sidebar-bottom{padding:12px;border-top:1px solid var(--border)}
+.sidebar-user{display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 4px}
+.sidebar-user img{width:26px;height:26px;border-radius:50%}
+.sidebar-user span{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Panel */
+.panel{flex:1;overflow-y:auto;background:var(--bg)}
+.panel-inner{padding:28px 32px;max-width:1100px}
+.panel-header{margin-bottom:24px}
+.panel-header h2{font-size:22px;font-weight:800;margin-bottom:4px}
+.panel-header p{color:var(--text2);font-size:13px}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--bg2)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px)}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:420px;max-width:90vw;max-height:90vh;overflow-y:auto}
+.modal h3{font-weight:800;font-size:16px;margin-bottom:18px}
+
+/* Form helpers */
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:12px;color:var(--text2);font-weight:600;margin-bottom:5px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.stat-card{background:var(--bg2);border-radius:10px;padding:18px;border:1px solid var(--border)}
+.stat-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.stat-value{font-size:26px;font-weight:800;font-family:var(--fm)}
+
+/* List items */
+.list-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.list-item:hover{border-color:var(--border2)}
+.list-item.selected{border-color:var(--accent)}
+
+/* XP bar */
+.xp-bar-wrap{flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.xp-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:2px}
+
+/* Grid bg for login */
+.grid-bg{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(30,30,56,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(30,30,56,.4) 1px,transparent 1px);background-size:40px 40px}
+
+/* Owner glow */
+.owner-glow{box-shadow:0 0 20px rgba(249,115,22,.2),0 0 60px rgba(249,115,22,.05)}
+.owner-gradient{background:linear-gradient(90deg,var(--orange),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;gap:8px;margin-top:14px;justify-content:flex-end}
+.pagination span{font-size:12px;color:var(--text2)}
+
+/* Super admin tabs */
+.sa-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.sa-tab{padding:8px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:transparent;color:var(--text3);border-bottom:2px solid transparent;transition:all .15s}
+.sa-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.sa-tab:hover{color:var(--text)}
+
+/* Notification */
+.notif{position:fixed;top:16px;right:16px;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;animation:fadeIn .2s ease;max-width:320px}
+.notif-success{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:var(--green)}
+.notif-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:var(--red)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="grid-bg"></div>
+  <div class="fade" style="text-align:center;padding:48px 24px;position:relative;z-index:1;max-width:400px">
+    <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;margin:0 auto 20px;box-shadow:0 0 40px rgba(124,58,237,.4)">MX</div>
+    <h1 style="font-size:34px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px">MXDNIGHT</h1>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:32px">Bot dashboard. Manage your servers.</p>
+    <div id="login-error" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 16px;margin-bottom:16px;color:var(--red);font-size:13px"></div>
+    <a id="login-link" href="#" onclick="this.href=API_BASE+'/auth/login'">
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;border-radius:10px;background:#5865F2;box-shadow:0 4px 20px rgba(88,101,242,.4)">
+        <svg width="22" height="16" viewBox="0 0 256 199"><path fill="white" d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046a194.494 194.494 0 0 0-58.554 0C96.759 9.645 94.1 4.113 91.825 0c-18.624 3.301-36.355 9.004-52.814 16.597C5.617 67.78-3.444 117.665 1.087 166.888A209.602 209.602 0 0 0 63.576 199.02c5.33-7.33 10.082-15.13 14.16-23.36a136.436 136.436 0 0 1-22.326-10.87c1.87-1.38 3.698-2.81 5.47-4.28 43.122 20.064 89.87 20.064 132.5 0a135.17 135.17 0 0 0 5.47 4.28 136.95 136.95 0 0 1-22.348 10.878c4.08 8.23 8.83 16.03 14.16 23.36a209.217 209.217 0 0 0 62.49-32.132c5.117-53.772-8.756-103.19-36.72-150.291ZM85.474 135.095c-12.645 0-23.016-11.805-23.016-26.18s10.148-26.18 23.016-26.18c12.867 0 23.239 11.805 23.016 26.18.023 14.375-10.149 26.18-23.016 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.18 23.014-26.18c12.868 0 23.239 11.805 23.016 26.18 0 14.375-10.148 26.18-23.016 26.18Z"/></svg>
+        Login with Discord
+      </button>
+    </a>
+    <p style="color:var(--text3);font-size:12px;margin-top:16px;font-family:var(--fm)">Admin-only servers will appear after login.</p>
+  </div>
+</div>
+
+<!-- GUILD SELECT -->
+<div id="guild-screen">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">MX</div>MXDNIGHT <span id="gs-owner-badge" style="display:none" class="badge badge-orange" style="font-size:10px">OWNER</span></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <img id="gs-avatar" src="" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--border2)"/>
+      <span id="gs-username" style="font-size:13px;color:var(--text2)"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div style="max-width:880px;margin:0 auto;padding:40px 24px">
+    <div class="fade">
+      <h1 style="font-size:26px;font-weight:800;margin-bottom:4px">Select a Server</h1>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:28px">Servers where you have admin permissions</p>
+    </div>
+    <div id="guild-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
+    <div id="owner-panel-btn" style="display:none;margin-top:36px">
+      <div class="card owner-glow" style="border-color:rgba(249,115,22,.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span>⚡</span><span style="font-weight:800;color:var(--orange)">Super Admin</span>
+              <span class="badge badge-orange" style="font-size:10px">OWNERS ONLY</span>
+            </div>
+            <p style="color:var(--text2);font-size:13px">Global bot controls across all servers</p>
+          </div>
+          <button class="btn btn-owner" onclick="openSuperAdmin()">Enter →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash-screen" style="display:flex;flex-direction:column">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo"><div class="logo-icon">MX</div>MXDNIGHT</div>
+      <div style="width:1px;height:18px;background:var(--border2)"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <img id="dash-guild-icon" src="" style="width:22px;height:22px;border-radius:6px;display:none"/>
+        <span id="dash-guild-name" style="font-size:13px;font-weight:600;color:var(--text2)"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <img id="dash-avatar" src="" style="width:28px;height:28px;border-radius:50%"/>
+      <button class="btn btn-ghost btn-sm" onclick="showGuilds()">← Servers</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="dash-layout">
+    <nav class="sidebar">
+      <div class="sidebar-nav" id="sidebar-nav"></div>
+      <div class="sidebar-bottom">
+        <div id="sa-sidebar-btn" style="display:none;margin-bottom:8px">
+          <button class="btn btn-owner" style="width:100%;justify-content:center;font-size:11px;padding:7px" onclick="openSuperAdmin()">⚡ Super Admin</button>
+        </div>
+        <div class="sidebar-user">
+          <img id="sidebar-avatar" src=""/>
+          <span id="sidebar-username"></span>
+        </div>
+      </div>
+    </nav>
+    <div class="panel">
+      <div class="panel-inner fade" id="panel-content"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const API_BASE = 'https://your-discloud-url.discloud.app'; // ← change this
+
+const S = { user: null, guilds: [], guildId: null, panel: 'overview', isOwner: false };
+const OWNER_IDS = ['1432367869248672078', '1361760724203864188'];
+
+// ═══════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════
+async function api(path, opts = {}) {
+  const r = await fetch(API_BASE + path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+  return r.json().catch(() => null);
+}
+const GET = p => api(p);
+const POST = (p, b) => api(p, { method: 'POST', body: b });
+const PATCH = (p, b) => api(p, { method: 'PATCH', body: b });
+const DELETE = p => api(p, { method: 'DELETE' });
+const G = () => `/api/guilds/${S.guildId}`;
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+function notify(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `notif notif-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+async function init() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('error')) {
+    document.getElementById('login-error').textContent =
+      params.get('error') === 'auth_failed' ? 'Authentication failed. Try again.' : 'Something went wrong.';
+    document.getElementById('login-error').style.display = 'block';
+    history.replaceState(null, '', '/');
+  }
+
+  try {
+    S.user = await GET('/auth/me');
+  } catch { S.user = null; }
+
+  if (!S.user) return showLogin();
+
+  S.isOwner = OWNER_IDS.includes(S.user.id);
+  S.guilds = S.user.guilds || [];
+
+  if (location.pathname === '/dashboard') showDash();
+  else showGuilds();
+}
+
+async function logout() {
+  await POST('/auth/logout');
+  S.user = null;
+  showLogin();
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('guild-screen').style.display = 'none';
+  document.getElementById('dash-screen').style.display = 'none';
+}
+
+function showGuilds() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('guild-screen').style.display = 'block';
+  document.getElementById('dash-screen').style.display = 'none';
+  history.pushState(null, '', '/');
+
+  document.getElementById('gs-avatar').src = S.user.avatar;
+  document.getElementById('gs-username').textContent = S.user.globalName || S.user.username;
+  if (S.isOwner) document.getElementById('gs-owner-badge').style.display = 'inline-flex';
+  if (S.isOwner) document.getElementById('owner-panel-btn').style.display = 'block';
+
+  const list = document.getElementById('guild-list');
+  list.innerHTML = S.guilds.length ? '' : `<div class="card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2)">No servers found with the bot present.</div>`;
+
+  S.guilds.forEach(g => {
+    const icon = g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null;
+    const div = document.createElement('div');
+    div.style.cssText = 'cursor:pointer';
+    div.innerHTML = `
+      <div class="list-item fade" style="gap:14px" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--border)'">
+        ${icon ? `<img src="${icon}" style="width:44px;height:44px;border-radius:10px"/>` :
+          `<div style="width:44px;height:44px;border-radius:10px;background:var(--border2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">${g.name[0]}</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px">${g.name}</div>
+          ${g.owner ? '<span class="badge badge-yellow" style="font-size:10px">Owner</span>' : ''}
+        </div>
+        <span style="font-size:18px;color:var(--text3)">›</span>
+      </div>`;
+    div.onclick = () => selectGuild(g);
+    list.appendChild(div);
+  });
+}
+
+function selectGuild(g) {
+  S.guildId = g.id;
+  showDash();
+}
+
+function showDash() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('guild-screen').style.display = 'none';
+  document.getElementById('dash-screen').style.display = 'flex';
+
+  const g = S.guilds.find(x => x.id === S.guildId);
+  if (g) {
+    document.getElementById('dash-guild-name').textContent = g.name;
+    const icon = g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null;
+    if (icon) { document.getElementById('dash-guild-icon').src = icon; document.getElementById('dash-guild-icon').style.display = 'block'; }
+  }
+  document.getElementById('dash-avatar').src = S.user.avatar;
+  document.getElementById('sidebar-avatar').src = S.user.avatar;
+  document.getElementById('sidebar-username').textContent = S.user.globalName || S.user.username;
+  if (S.isOwner) document.getElementById('sa-sidebar-btn').style.display = 'block';
+
+  buildSidebar();
+  navigate('overview');
+}
+
+function openSuperAdmin() {
+  S.guildId = 'superadmin';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('guild-screen').style.display = 'none';
+  document.getElementById('dash-screen').style.display = 'flex';
+  document.getElementById('dash-guild-name').textContent = 'Super Admin';
+  document.getElementById('dash-guild-icon').style.display = 'none';
+  document.getElementById('dash-avatar').src = S.user.avatar;
+  document.getElementById('sidebar-avatar').src = S.user.avatar;
+  document.getElementById('sidebar-username').textContent = S.user.globalName || S.user.username;
+  buildSidebar();
+  navigate('superadmin');
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════
+const NAV = [
+  { id:'overview', icon:'◈', label:'Overview' },
+  { id:'battles',  icon:'⚔', label:'Beat Battles' },
+  { id:'mod',      icon:'🛡', label:'Moderation' },
+  { id:'xp',       icon:'⬆', label:'XP / Levels' },
+  { id:'economy',  icon:'◎', label:'Economy' },
+  { id:'giveaways',icon:'🎁', label:'Giveaways' },
+  { id:'tickets',  icon:'◻', label:'Tickets' },
+  { id:'music',    icon:'♪', label:'Music' },
+  { id:'settings', icon:'⚙', label:'Settings' },
+];
+
+function buildSidebar() {
+  document.getElementById('sidebar-nav').innerHTML = NAV.map(n =>
+    `<div class="nav-item${S.panel===n.id?' active':''}" onclick="navigate('${n.id}')" id="nav-${n.id}">
+       <span class="nav-icon">${n.icon}</span>${n.label}
+     </div>`).join('');
+}
+
+function navigate(panel) {
+  S.panel = panel;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const active = document.getElementById(`nav-${panel}`);
+  if (active) active.classList.add('active');
+  const panels = { overview:renderOverview, battles:renderBattles, mod:renderMod, xp:renderXP,
+    economy:renderEconomy, giveaways:renderGiveaways, tickets:renderTickets,
+    music:renderMusic, settings:renderSettings, superadmin:renderSuperAdmin };
+  const fn = panels[panel];
+  if (fn) fn();
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+const pc = () => document.getElementById('panel-content');
+const loading = () => { pc().innerHTML = `<div style="text-align:center;padding:60px;color:var(--text3)"><div class="spinner spin" style="margin:0 auto 12px"></div>Loading...</div>`; };
+const empty = msg => `<div class="card" style="text-align:center;padding:40px;color:var(--text2)">${msg}</div>`;
+
+function modal(title, bodyHtml, onConfirm, confirmLabel = 'Confirm', confirmClass = 'btn-primary') {
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay';
+  ov.innerHTML = `<div class="modal fade"><h3>${title}</h3><div id="modal-body">${bodyHtml}</div>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn ${confirmClass}" id="modal-confirm">${confirmLabel}</button>
+      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  document.getElementById('modal-confirm').onclick = () => { onConfirm(ov); };
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+}
+
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—'; }
+function fmtNum(n) { return (n||0).toLocaleString(); }
+
+function pagination(page, total, limit, cb) {
+  const pages = Math.ceil(total / limit) || 1;
+  return `<div class="pagination">
+    <button class="btn btn-ghost btn-sm" onclick="(${cb})(${page-1})" ${page<=1?'disabled':''}>← Prev</button>
+    <span>${page} / ${pages}</span>
+    <button class="btn btn-ghost btn-sm" onclick="(${cb})(${page+1})" ${page>=pages?'disabled':''}>Next →</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════════════════
+async function renderOverview() {
+  loading();
+  const stats = await GET(`${G()}/stats`).catch(() => ({}));
+  pc().innerHTML = `
+    <div class="panel-header"><h2>Overview</h2><p>Server stats at a glance</p></div>
+    <div class="stats-grid fade">
+      ${stat('Active Bans', stats.totalBans, 'var(--red)', '🔨')}
+      ${stat('Active Warns', stats.totalWarns, 'var(--yellow)', '⚠')}
+      ${stat('Members Tracked', stats.totalMembers, 'var(--cyan)', '👥')}
+      ${stat('Beat Battle', stats.activeBattle?'LIVE':'None', 'var(--accent2)', '⚔')}
+      ${stat('Active Giveaways', stats.activeGiveaways, 'var(--green)', '🎁')}
+      ${stat('Open Tickets', stats.openTickets, 'var(--text)', '◻')}
+    </div>`;
+}
+function stat(label, value, color, icon) {
+  return `<div class="stat-card" style="border-color:${color}22">
+    <div class="stat-label">${icon} ${label}</div>
+    <div class="stat-value" style="color:${color}">${value ?? '—'}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// BEAT BATTLES
+// ═══════════════════════════════════════════════════════
+let battleSelected = null;
+async function renderBattles(battles) {
+  loading();
+  battles = battles || await GET(`${G()}/battles`).catch(() => []);
+  const statusBadge = { open:'badge-green', voting:'badge-yellow', ended:'badge-red' };
+  pc().innerHTML = `
+    <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between">
+      <div><h2>Beat Battles</h2><p>Manage submissions, voting, results</p></div>
+      <button class="btn btn-primary" onclick="createBattleModal()">+ New Battle</button>
+    </div>
+    <div style="display:grid;grid-template-columns:${battleSelected?'1fr 1fr':'1fr'};gap:16px" class="fade">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${battles.length ? battles.map(b => `
+          <div class="list-item${battleSelected?._id===b._id?' selected':''}" style="cursor:pointer;flex-direction:column;align-items:flex-start;gap:10px" onclick="selectBattle('${b._id}')">
+            <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+              <div>
+                <div style="font-weight:700;margin-bottom:6px">${b.title}</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="badge ${statusBadge[b.status]||'badge-purple'}">${b.status}</span>
+                  ${b.theme?`<span style="font-size:12px;color:var(--text2)">${b.theme}</span>`:''}
+                  <span class="fm" style="font-size:11px;color:var(--text3)">${(b.submissions||[]).length} subs · ${(b.votes||[]).length} votes</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
+                ${b.status!=='ended'?`<button class="btn btn-cyan btn-sm" onclick="advanceBattle('${b._id}')">${b.status==='open'?'→ Vote':'→ End'}</button>`:''}
+                <button class="btn btn-danger btn-sm" onclick="deleteBattle('${b._id}')">Del</button>
+              </div>
+            </div>
+          </div>`).join('') : empty('No battles yet.')}
+      </div>
+      ${battleSelected ? battleDetail() : ''}
+    </div>`;
+}
+
+function battleDetail() {
+  const b = battleSelected;
+  return `<div class="card" style="border-color:var(--accent)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+      <span style="font-weight:800">${b.title}</span>
+      <button class="btn btn-ghost btn-sm" onclick="battleSelected=null;renderBattles()">✕</button>
+    </div>
+    ${b.winner?`<div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px">🏆 <strong>${b.winner.username}</strong> — ${b.winner.trackName}</div>`:''}
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Submissions (${(b.submissions||[]).length})</p>
+    <div style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto">
+      ${!(b.submissions||[]).length ? `<p style="color:var(--text3);font-size:13px">No submissions yet</p>` :
+        b.submissions.map(s => {
+          const votes = (b.votes||[]).filter(v=>v.votedFor===s.userId).length;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:6px">
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">${s.username}</div>
+            <a href="${s.trackUrl}" target="_blank" style="font-size:12px;color:var(--cyan)">${s.trackName}</a></div>
+            <span class="fm" style="font-size:12px;color:var(--cyan)">${votes}v</span>
+            <button class="btn btn-danger btn-sm" onclick="removeSubmission('${b._id}','${s.userId}')">✕</button>
+          </div>`;}).join('')}
+    </div>
+  </div>`;
+}
+
+async function selectBattle(id) {
+  const battles = await GET(`${G()}/battles`).catch(()=>[]);
+  battleSelected = battles.find(b=>b._id===id)||null;
+  renderBattles(battles);
+}
+
+async function advanceBattle(id) {
+  await PATCH(`${G()}/battles/${id}/advance`).catch(e=>notify(e.message,'error'));
+  battleSelected = null; renderBattles(); notify('Battle advanced');
+}
+async function deleteBattle(id) {
+  if (!confirm('Delete this battle?')) return;
+  await DELETE(`${G()}/battles/${id}`);
+  battleSelected = null; renderBattles(); notify('Battle deleted');
+}
+async function removeSubmission(battleId, userId) {
+  await DELETE(`${G()}/battles/${battleId}/submissions/${userId}`);
+  await selectBattle(battleId); notify('Submission removed');
+}
+
+function createBattleModal() {
+  modal('New Beat Battle', `
+    <div class="form-row"><div class="form-group"><label class="form-label">Title</label><input id="m-title" value="Beat Battle"/></div>
+    <div class="form-group"><label class="form-label">Theme</label><input id="m-theme" placeholder="e.g. Brazilian Phonk"/></div></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Submission Deadline</label><input id="m-subdeadline" type="datetime-local"/></div>
+      <div class="form-group"><label class="form-label">Voting Deadline</label><input id="m-votedeadline" type="datetime-local"/></div>
+    </div>`, async (ov) => {
+    await POST(`${G()}/battles`, { title:$('m-title'), theme:$('m-theme'), submissionDeadline:$('m-subdeadline'), votingDeadline:$('m-votedeadline') });
+    ov.remove(); renderBattles(); notify('Battle created!');
+  }, 'Create', 'btn-primary');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODERATION
+// ═══════════════════════════════════════════════════════
+let modPage = 1, modFilter = '';
+async function renderMod(page = 1, filter = modFilter) {
+  modPage = page; modFilter = filter;
+  loading();
+  const qs = new URLSearchParams({ page, limit:20, ...(filter?{action:filter}:{}) });
+  const data = await GET(`${G()}/mod?${qs}`).catch(() => ({ logs:[], total:0 }));
+  const abadge = { warn:'badge-yellow', mute:'badge-cyan', kick:'badge-orange', ban:'badge-red', unban:'badge-green', unmute:'badge-green' };
+  pc().innerHTML = `
+    <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between">
+      <div><h2>Moderation</h2><p>Cases, bans, mutes, warnings</p></div>
+      <button class="btn btn-primary" onclick="modActionModal()">+ New Action</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px" class="fade">
+      ${['','warn','mute','kick','ban'].map(a=>`<button class="btn ${modFilter===a?'btn-primary':'btn-ghost'} btn-sm" onclick="renderMod(1,'${a}')">${a||'All'}</button>`).join('')}
+    </div>
+    <div class="table-wrap fade">
+      <table><thead><tr><th>#</th><th>Action</th><th>User</th><th>Reason</th><th>Mod</th><th>Date</th><th>Status</th><th></th></tr></thead>
+      <tbody>${data.logs.length ? data.logs.map(l=>`<tr>
+        <td class="fm" style="color:var(--text3)">#${l.caseId}</td>
+        <td><span class="badge ${abadge[l.action]||'badge-purple'}">${l.action}</span></td>
+        <td style="font-weight:600">${l.username||l.userId}</td>
+        <td style="color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.reason}</td>
+        <td style="color:var(--text3);font-size:12px">${l.moderatorName||'—'}</td>
+        <td class="fm" style="font-size:11px;color:var(--text3)">${fmtDate(l.createdAt)}</td>
+        <td>${(l.action==='ban'||l.action==='mute')?`<span class="badge ${l.active?'badge-red':'badge-green'}">${l.active?'active':'revoked'}</span>`:''}</td>
+        <td><div style="display:flex;gap:4px">
+          ${(l.action==='ban'||l.action==='mute')&&l.active?`<button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:var(--green)" onclick="revokeCase(${l.caseId})">Revoke</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="deleteCase(${l.caseId})">Del</button>
+        </div></td>
+      </tr>`).join('') : `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">No cases found</td></tr>`}</tbody>
+      </table>
+    </div>
+    ${pagination(page, data.total, 20, 'renderMod')}`;
+}
+
+async function revokeCase(caseId) { await PATCH(`${G()}/mod/${caseId}/revoke`); renderMod(modPage); notify('Case revoked'); }
+async function deleteCase(caseId) { if(!confirm('Delete case?')) return; await DELETE(`${G()}/mod/${caseId}`); renderMod(modPage); notify('Case deleted'); }
+
+function modActionModal() {
+  modal('New Mod Action', `
+    <div class="form-group"><label class="form-label">User ID</label><input id="m-uid" placeholder="Discord User ID"/></div>
+    <div class="form-group"><label class="form-label">Username</label><input id="m-uname" placeholder="username"/></div>
+    <div class="form-group"><label class="form-label">Action</label>
+      <select id="m-action"><option value="warn">warn</option><option value="mute">mute</option><option value="kick">kick</option><option value="ban">ban</option></select></div>
+    <div class="form-group" id="m-dur-wrap" style="display:none"><label class="form-label">Duration (minutes)</label><input id="m-dur" type="number" min="1"/></div>
+    <div class="form-group"><label class="form-label">Reason</label><textarea id="m-reason" rows="2"></textarea></div>`,
+    async (ov) => {
+      await POST(`${G()}/mod`, { userId:$('m-uid'), username:$('m-uname'), action:$('m-action'), reason:$('m-reason'), duration:$('m-dur')?+$('m-dur'):undefined });
+      ov.remove(); renderMod(); notify('Action applied');
+    }, 'Apply', 'btn-primary');
+  document.getElementById('m-action').onchange = e => {
+    document.getElementById('m-dur-wrap').style.display = e.target.value==='mute'?'block':'none';
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// XP
+// ═══════════════════════════════════════════════════════
+let xpPage = 1;
+async function renderXP(page = 1) {
+  xpPage = page; loading();
+  const data = await GET(`${G()}/xp?page=${page}&limit=20`).catch(() => ({ users:[], total:0 }));
+  const maxXP = data.users[0]?.xp || 1;
+  pc().innerHTML = `
+    <div class="panel-header"><h2>XP Leaderboard</h2><p>Track and manage member experience</p></div>
+    <div class="fade" style="display:flex;flex-direction:column;gap:8px">
+      ${data.users.length ? data.users.map((u,i)=>`
+        <div class="list-item" style="gap:14px">
+          <span class="fm" style="font-size:13px;color:var(--text3);width:24px;text-align:right">${(page-1)*20+i+1}</span>
+          ${u.avatar?`<img src="${u.avatar}" style="width:32px;height:32px;border-radius:50%"/>`:`<div style="width:32px;height:32px;border-radius:50%;background:var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700">${(u.username||'?')[0]}</div>`}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+              <span style="font-weight:700;font-size:14px">${u.username||u.userId}</span>
+              <span class="badge badge-purple" style="font-size:10px">LVL ${u.level}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="xp-bar-wrap"><div class="xp-bar" style="width:${Math.min(100,(u.xp/maxXP)*100)}%"></div></div>
+              <span class="fm" style="font-size:11px;color:var(--text2);white-space:nowrap">${fmtNum(u.xp)} XP</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="editXPModal('${u.userId}','${u.username||''}',${u.xp},${u.level})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="resetXP('${u.userId}')">Reset</button>
+          </div>
+        </div>`).join('') : empty('No XP data yet.')}
+    </div>
+    ${pagination(page, data.total, 20, 'renderXP')}`;
+}
+
+function editXPModal(userId, username, xp, level) {
+  modal(`Edit XP: ${username}`, `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">XP</label><input id="m-xp" type="number" value="${xp}"/></div>
+      <div class="form-group"><label class="form-label">Level</label><input id="m-lv" type="number" value="${level}"/></div>
+    </div>`, async (ov) => {
+    await PATCH(`${G()}/xp/${userId}`, { xp:+$('m-xp'), level:+$('m-lv') });
+    ov.remove(); renderXP(xpPage); notify('XP updated');
+  }, 'Save', 'btn-cyan');
+}
+async function resetXP(userId) { if(!confirm('Reset XP?')) return; await DELETE(`${G()}/xp/${userId}`); renderXP(xpPage); notify('XP reset'); }
+
+// ═══════════════════════════════════════════════════════
+// ECONOMY
+// ═══════════════════════════════════════════════════════
+let ecPage = 1;
+async function renderEconomy(page = 1) {
+  ecPage = page; loading();
+  const data = await GET(`${G()}/economy?page=${page}&limit=20`).catch(() => ({ users:[], total:0 }));
+  pc().innerHTML = `
+    <div class="panel-header"><h2>Economy</h2><p>Manage coin balances</p></div>
+    <div class="table-wrap fade">
+      <table><thead><tr><th>#</th><th>User</th><th style="text-align:right">Wallet</th><th style="text-align:right">Bank</th><th style="text-align:right">Total</th><th></th></tr></thead>
+      <tbody>${data.users.length ? data.users.map((u,i)=>`<tr>
+        <td class="fm" style="color:var(--text3)">${(page-1)*20+i+1}</td>
+        <td style="font-weight:600">${u.username||u.userId}</td>
+        <td class="fm" style="text-align:right;color:var(--cyan)">◎ ${fmtNum(u.wallet)}</td>
+        <td class="fm" style="text-align:right;color:var(--text2)">◎ ${fmtNum(u.bank)}</td>
+        <td class="fm" style="text-align:right;font-weight:700">◎ ${fmtNum((u.wallet||0)+(u.bank||0))}</td>
+        <td><div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="editEconModal('${u.userId}','${u.username||''}',${u.wallet},${u.bank})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="resetEcon('${u.userId}')">Reset</button>
+        </div></td>
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3)">No economy data</td></tr>`}
+      </tbody></table>
+    </div>
+    ${pagination(page, data.total, 20, 'renderEconomy')}`;
+}
+
+function editEconModal(uid, username, wallet, bank) {
+  modal(`Edit: ${username}`, `
+    <div class="form-group"><label class="form-label">Wallet</label><input id="m-w" type="number" value="${wallet}"/></div>
+    <div class="form-group"><label class="form-label">Bank</label><input id="m-b" type="number" value="${bank}"/></div>
+    <div class="form-group"><label class="form-label">Reason</label><input id="m-r" placeholder="Admin adjustment"/></div>`,
+    async (ov) => {
+      await PATCH(`${G()}/economy/${uid}`, { wallet:+$('m-w'), bank:+$('m-b'), reason:$('m-r') });
+      ov.remove(); renderEconomy(ecPage); notify('Balance updated');
+    }, 'Save', 'btn-primary');
+}
+async function resetEcon(uid) { if(!confirm('Reset economy for this user?')) return; await DELETE(`${G()}/economy/${uid}`); renderEconomy(ecPage); notify('Economy reset'); }
+
+// ═══════════════════════════════════════════════════════
+// GIVEAWAYS
+// ═══════════════════════════════════════════════════════
+let gaFilter = 'active';
+async function renderGiveaways(filter = gaFilter) {
+  gaFilter = filter; loading();
+  const data = await GET(`${G()}/giveaways?status=${filter}`).catch(() => []);
+  const timeLeft = d => { const ms=new Date(d)-Date.now(); if(ms<=0) return 'Ended'; const h=Math.floor(ms/3600000); const m=Math.floor((ms%3600000)/60000); return h>0?`${h}h ${m}m`:`${m}m`; };
+  pc().innerHTML = `
+    <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between">
+      <div><h2>Giveaways</h2><p>Create and manage giveaways</p></div>
+      <button class="btn btn-primary" onclick="createGiveawayModal()">+ New Giveaway</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${['active','ended','cancelled'].map(s=>`<button class="btn ${gaFilter===s?'btn-primary':'btn-ghost'} btn-sm" onclick="renderGiveaways('${s}')">${s}</button>`).join('')}
+    </div>
+    <div class="fade" style="display:flex;flex-direction:column;gap:10px">
+      ${data.length ? data.map(g=>`
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-weight:800;font-size:15px;margin-bottom:4px">🎁 ${g.prize}</div>
+              ${g.description?`<div style="font-size:13px;color:var(--text2);margin-bottom:6px">${g.description}</div>`:''}
+              <div style="display:flex;gap:10px;font-size:12px;color:var(--text3)">
+                <span>${(g.participants||[]).length} entries</span>
+                <span>·</span><span>${g.winnerCount} winner${g.winnerCount>1?'s':''}</span>
+                <span>·</span>
+                ${g.status==='active'?`<span class="fm" style="color:var(--green)">⏱ ${timeLeft(g.endsAt)}</span>`:
+                  `<span>${fmtDate(g.endedAt||g.endsAt)}</span>`}
+              </div>
+              ${g.winners?.length?`<div style="margin-top:8px;font-size:12px">🏆 Winners: <strong style="color:var(--cyan)">${g.winners.join(', ')}</strong></div>`:''}
+            </div>
+            <div style="display:flex;gap:6px">
+              ${g.status==='active'?`<button class="btn btn-cyan btn-sm" onclick="endGiveaway('${g._id}')">End Now</button>`:''}
+              ${g.status==='ended'?`<button class="btn btn-ghost btn-sm" onclick="rerollGiveaway('${g._id}')">Reroll</button>`:''}
+              <button class="btn btn-danger btn-sm" onclick="deleteGiveaway('${g._id}')">Del</button>
+            </div>
+          </div>
+        </div>`).join('') : empty(`No ${filter} giveaways.`)}
+    </div>`;
+}
+
+function createGiveawayModal() {
+  modal('New Giveaway', `
+    <div class="form-group"><label class="form-label">Prize</label><input id="m-prize" placeholder="Nitro, Beat collab..."/></div>
+    <div class="form-group"><label class="form-label">Description (optional)</label><input id="m-desc"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Winners</label><input id="m-wc" type="number" value="1" min="1" max="20"/></div>
+      <div class="form-group"><label class="form-label">Ends At</label><input id="m-ends" type="datetime-local"/></div>
+    </div>`, async (ov) => {
+    await POST(`${G()}/giveaways`, { prize:$('m-prize'), description:$('m-desc'), winnerCount:+$('m-wc'), endsAt:$('m-ends') });
+    ov.remove(); renderGiveaways(); notify('Giveaway created!');
+  }, 'Create', 'btn-primary');
+}
+async function endGiveaway(id) { await PATCH(`${G()}/giveaways/${id}/end`); renderGiveaways(); notify('Giveaway ended'); }
+async function rerollGiveaway(id) { await PATCH(`${G()}/giveaways/${id}/reroll`); renderGiveaways(); notify('Rerolled!'); }
+async function deleteGiveaway(id) { if(!confirm('Delete?')) return; await DELETE(`${G()}/giveaways/${id}`); renderGiveaways(); notify('Deleted'); }
+
+// ═══════════════════════════════════════════════════════
+// TICKETS
+// ═══════════════════════════════════════════════════════
+let tkFilter = '', tkSelected = null, tkPage = 1;
+async function renderTickets(page = 1, filter = tkFilter) {
+  tkPage = page; tkFilter = filter; loading();
+  const qs = new URLSearchParams({ page, limit:20, ...(filter?{status:filter}:{}) });
+  const data = await GET(`${G()}/tickets?${qs}`).catch(() => ({ tickets:[], total:0 }));
+  const sb = { open:'badge-green', claimed:'badge-yellow', closed:'badge-red' };
+  pc().innerHTML = `
+    <div class="panel-header"><h2>Tickets</h2><p>Support tickets and transcripts</p></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${['','open','claimed','closed'].map(s=>`<button class="btn ${tkFilter===s?'btn-primary':'btn-ghost'} btn-sm" onclick="renderTickets(1,'${s}')">${s||'All'}</button>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:${tkSelected?'1fr 1fr':'1fr'};gap:16px" class="fade">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${data.tickets.length ? data.tickets.map(t=>`
+          <div class="list-item${tkSelected?.ticketId===t.ticketId?' selected':''}" style="cursor:pointer;flex-direction:column;align-items:flex-start" onclick="viewTicket(${t.ticketId})">
+            <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <span class="fm" style="font-size:11px;color:var(--text3)">#${t.ticketId}</span>
+                  <span class="badge ${sb[t.status]||'badge-purple'}" style="font-size:10px">${t.status}</span>
+                  ${t.category?`<span style="font-size:12px;color:var(--text2)">${t.category}</span>`:''}
+                </div>
+                <div style="font-weight:600;font-size:13px">${t.username||t.userId}</div>
+                ${t.subject?`<div style="font-size:12px;color:var(--text2)">${t.subject}</div>`:''}
+              </div>
+              <div style="display:flex;gap:5px" onclick="event.stopPropagation()">
+                ${t.status!=='closed'?`<button class="btn btn-ghost btn-sm" style="color:var(--yellow);border-color:var(--yellow)" onclick="closeTicket(${t.ticketId})">Close</button>`:''}
+                <button class="btn btn-danger btn-sm" onclick="deleteTicket(${t.ticketId})">Del</button>
+              </div>
+            </div>
+          </div>`).join('') : empty('No tickets found.')}
+        ${pagination(page, data.total, 20, 'renderTickets')}
+      </div>
+      ${tkSelected ? ticketDetail() : ''}
+    </div>`;
+}
+
+function ticketDetail() {
+  const t = tkSelected;
+  return `<div class="card" style="border-color:var(--accent)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <div><div style="font-weight:800">Ticket #${t.ticketId}</div><span class="badge badge-cyan" style="font-size:10px">${t.status}</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="tkSelected=null;renderTickets(${tkPage})">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">User: <strong style="color:var(--text)">${t.username||t.userId}</strong>${t.claimedByName?` · Claimed by <strong style="color:var(--cyan)">${t.claimedByName}</strong>`:''}</div>
+    <div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+      ${!(t.transcript||[]).length?`<p style="color:var(--text3);font-size:13px">No messages recorded</p>`:
+        t.transcript.map(m=>`<div style="padding:8px 10px;background:var(--bg3);border-radius:6px">
+          <div style="display:flex;gap:8px;margin-bottom:3px">
+            <span style="font-weight:700;font-size:12px">${m.username}</span>
+            <span class="fm" style="font-size:11px;color:var(--text3)">${new Date(m.timestamp).toLocaleTimeString()}</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2)">${m.content}</p>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+async function viewTicket(ticketId) {
+  tkSelected = await GET(`${G()}/tickets/${ticketId}`).catch(()=>null);
+  const data = await GET(`${G()}/tickets?page=${tkPage}&limit=20${tkFilter?`&status=${tkFilter}`:''}`).catch(()=>({tickets:[],total:0}));
+  renderTickets(tkPage, tkFilter);
+}
+async function closeTicket(id) { await PATCH(`${G()}/tickets/${id}/close`); renderTickets(tkPage); notify('Ticket closed'); }
+async function deleteTicket(id) { if(!confirm('Delete ticket?')) return; await DELETE(`${G()}/tickets/${id}`); tkSelected=null; renderTickets(tkPage); notify('Deleted'); }
+
+// ═══════════════════════════════════════════════════════
+// MUSIC
+// ═══════════════════════════════════════════════════════
+let musicPoll = null;
+async function renderMusic() {
+  if (musicPoll) clearInterval(musicPoll);
+  await drawMusic();
+  musicPoll = setInterval(drawMusic, 5000);
+}
+
+async function drawMusic() {
+  const ms = await GET(`${G()}/music`).catch(() => ({ playing:false, paused:false, current:null, queue:[], volume:100 }));
+  pc().innerHTML = `
+    <div class="panel-header"><h2>Music</h2><p>Real-time controls</p></div>
+    <div class="card fade" style="margin-bottom:14px;border-color:${ms.playing?'var(--accent)':'var(--border)'}">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="width:52px;height:52px;border-radius:10px;flex-shrink:0;background:${ms.playing?'linear-gradient(135deg,var(--accent),var(--cyan))':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:22px">
+          ${ms.playing?(ms.paused?'⏸':'♪'):'—'}
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:15px;margin-bottom:2px">${ms.current?.title||'Nothing playing'}</div>
+          <div style="font-size:13px;color:var(--text2)">${ms.current?.author||''}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn ${ms.paused?'btn-primary':'btn-ghost'}" style="font-size:16px;padding:8px 14px" onclick="musicAction('pause')">${ms.paused?'▶':'⏸'}</button>
+          <button class="btn btn-ghost" style="font-size:16px;padding:8px 14px" onclick="musicAction('skip')">⏭</button>
+          <button class="btn btn-danger btn-sm" onclick="musicAction('stop')">■ Stop</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+        <span style="font-size:12px;color:var(--text2)">Vol</span>
+        <input type="range" id="vol-slider" min="0" max="200" value="${ms.volume||100}" style="flex:1;accent-color:var(--accent)" oninput="document.getElementById('vol-val').textContent=this.value+'%'"/>
+        <span class="fm" id="vol-val" style="font-size:12px;color:var(--text2);width:36px">${ms.volume||100}%</span>
+        <button class="btn btn-ghost btn-sm" onclick="setVolume()">Set</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="music-query" placeholder="Song name or URL..." style="flex:1" onkeydown="if(event.key==='Enter')musicPlay()"/>
+      <button class="btn btn-primary" onclick="musicPlay()">▶ Play</button>
+    </div>
+    <h3 style="font-weight:700;font-size:14px;color:var(--text2);margin-bottom:10px">Queue (${(ms.queue||[]).length})</h3>
+    <div class="fade" style="display:flex;flex-direction:column;gap:6px">
+      ${!(ms.queue||[]).length ? empty('Queue is empty') :
+        ms.queue.map((t,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--border)">
+          <span class="fm" style="font-size:11px;color:var(--text3);width:20px;text-align:center">${i+1}</span>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${t.title}</div><div style="font-size:11px;color:var(--text3)">${t.author} · ${t.duration}</div></div>
+          <button class="btn btn-danger btn-sm" onclick="musicRemove(${i})">✕</button>
+        </div>`).join('')}
+    </div>`;
+}
+
+async function musicPlay() { const q = document.getElementById('music-query')?.value; if(!q) return; await POST(`${G()}/music/play`, {query:q}); drawMusic(); notify('Added to queue'); }
+async function musicAction(a) { await POST(`${G()}/music/${a}`); drawMusic(); }
+async function setVolume() { const v = document.getElementById('vol-slider')?.value; if(!v) return; await POST(`${G()}/music/volume`, {volume:+v}); notify(`Volume: ${v}%`); }
+async function musicRemove(i) { await fetch(API_BASE + `${G()}/music/queue/${i}`,{method:'DELETE',credentials:'include'}); drawMusic(); }
+
+// ═══════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════
+async function renderSettings() {
+  loading();
+  const cfg = await GET(`${G()}`).catch(() => ({ prefix:'!', settings:{} }));
+  const s = cfg.settings || {};
+  const field = (label, key, val) => `<div class="form-group"><label class="form-label">${label}</label><input id="s-${key}" value="${val||''}"/></div>`;
+  pc().innerHTML = `
+    <div class="panel-header"><h2>Settings</h2><p>Server configuration</p></div>
+    <div style="max-width:520px" class="fade">
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="font-weight:700;font-size:14px;margin-bottom:14px">General</h3>
+        <div class="form-group"><label class="form-label">Prefix</label><input id="s-prefix" value="${cfg.prefix||'!'}" style="width:80px"/></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="font-weight:700;font-size:14px;margin-bottom:14px">Channels (IDs)</h3>
+        ${field('Log Channel','logChannel',s.logChannel)}
+        ${field('Mod Channel','modChannel',s.modChannel)}
+        ${field('Welcome Channel','welcomeChannel',s.welcomeChannel)}
+        ${field('Music Channel','musicChannel',s.musicChannel)}
+        ${field('Battle Channel','battleChannel',s.battleChannel)}
+        ${field('Ticket Category','ticketCategory',s.ticketCategory)}
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="font-weight:700;font-size:14px;margin-bottom:14px">Features</h3>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:600">XP System</span>
+            <button id="s-xp" class="btn btn-sm ${s.xpEnabled!==false?'btn-green':'btn-ghost'}" onclick="toggleSetting('xp','s-xp',this)">${s.xpEnabled!==false?'✓ Enabled':'Disabled'}</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:600">Economy</span>
+            <button id="s-ec" class="btn btn-sm ${s.economyEnabled!==false?'btn-green':'btn-ghost'}" onclick="toggleSetting('ec','s-ec',this)">${s.economyEnabled!==false?'✓ Enabled':'Disabled'}</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="save-btn" onclick="saveSettings()">Save Changes</button>
+    </div>`;
+}
+
+let settingToggles = {};
+function toggleSetting(key, elId, btn) {
+  settingToggles[key] = !settingToggles[key];
+  const on = settingToggles[key];
+  btn.className = `btn btn-sm ${on?'btn-green':'btn-ghost'}`;
+  btn.textContent = on?'✓ Enabled':'Disabled';
+}
+
+async function saveSettings() {
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  const v = id => document.getElementById(id)?.value || '';
+  await PATCH(`${G()}`, {
+    prefix: v('s-prefix'),
+    settings: {
+      logChannel:v('s-logChannel'), modChannel:v('s-modChannel'), welcomeChannel:v('s-welcomeChannel'),
+      musicChannel:v('s-musicChannel'), battleChannel:v('s-battleChannel'), ticketCategory:v('s-ticketCategory'),
+      xpEnabled: settingToggles.xp ?? true,
+      economyEnabled: settingToggles.ec ?? true,
+    }
+  });
+  btn.textContent = '✓ Saved'; btn.className = 'btn btn-green';
+  setTimeout(() => { btn.textContent = 'Save Changes'; btn.className = 'btn btn-primary'; btn.disabled = false; }, 2000);
+  notify('Settings saved!');
+}
+
+// ═══════════════════════════════════════════════════════
+// SUPER ADMIN
+// ═══════════════════════════════════════════════════════
+let saTab = 'say', saGuilds = [], saChannels = [];
+
+async function renderSuperAdmin() {
+  if (!S.isOwner) { pc().innerHTML = `<div class="card" style="text-align:center;padding:40px;color:var(--red)">Access denied.</div>`; return; }
+  loading();
+  saGuilds = await GET('/api/sa/guilds').catch(() => []);
+
+  drawSuperAdmin();
+}
+
+function drawSuperAdmin() {
+  const tabs = ['say','broadcast','dm','presence','stats','servers'];
+  pc().innerHTML = `
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+        <span style="font-size:28px">⚡</span>
+        <h1 style="font-size:24px;font-weight:800" class="owner-gradient">Super Admin</h1>
+        <span class="badge badge-orange">OWNERS ONLY</span>
+      </div>
+      <p style="color:var(--text2);font-size:13px">Global bot controls across all servers</p>
+    </div>
+    <div class="sa-tabs">${tabs.map(t=>`<button class="sa-tab${saTab===t?' active':''}" onclick="saTab='${t}';drawSuperAdmin()">${t}</button>`).join('')}</div>
+    <div id="sa-body" class="fade">${renderSaTab()}</div>`;
+}
+
+function renderSaTab() {
+  if (saTab === 'say') return `
+    <div class="card" style="max-width:580px;border-color:rgba(249,115,22,.3)">
+      <h3 style="font-weight:800;margin-bottom:16px;color:var(--orange)">Send Message via Bot</h3>
+      <div class="form-group"><label class="form-label">Server</label>
+        <select id="sa-gid" onchange="loadSaChannels(this.value)">
+          <option value="">— Select server —</option>
+          ${saGuilds.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}
+        </select></div>
+      <div class="form-group"><label class="form-label">Channel</label>
+        <select id="sa-cid"><option value="">— Select channel —</option>
+          ${saChannels.map(c=>`<option value="${c.id}">#${c.name}</option>`).join('')}
+        </select></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea id="sa-msg" rows="4" placeholder="Type your message..."></textarea></div>
+      <div style="margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" id="sa-embed-toggle" onclick="toggleSaEmbed()">Use Embed</button>
+      </div>
+      <div id="sa-embed-fields" style="display:none;background:var(--bg3);border-radius:8px;padding:14px;border-left:3px solid var(--accent);margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Embed Title</label><input id="sa-etitle"/></div>
+        <div class="form-group"><label class="form-label">Embed Description</label><textarea id="sa-edesc" rows="3"></textarea></div>
+        <div class="form-group"><label class="form-label">Color</label><input id="sa-ecolor" type="color" value="#7c3aed" style="width:60px;height:36px;padding:2px;cursor:pointer"/></div>
+      </div>
+      <button class="btn btn-owner" onclick="saSend()">⚡ Send Message</button>
+    </div>`;
+
+  if (saTab === 'broadcast') return `
+    <div class="card" style="max-width:560px;border-color:rgba(249,115,22,.3)">
+      <h3 style="font-weight:800;margin-bottom:6px;color:var(--orange)">Broadcast to All Servers</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Sends to a matching channel name in every server the bot is in</p>
+      <div class="form-group"><label class="form-label">Target Channel Name</label><input id="sa-bchan" value="general"/></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea id="sa-bmsg" rows="5" placeholder="Broadcast message..."></textarea></div>
+      <div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--orange);margin-bottom:14px">
+        ⚠ This sends to all <strong>${saGuilds.length}</strong> servers. Use with caution.
+      </div>
+      <button class="btn btn-owner" onclick="saBroadcast()">⚡ Broadcast</button>
+    </div>`;
+
+  if (saTab === 'dm') return `
+    <div class="card" style="max-width:480px;border-color:rgba(249,115,22,.3)">
+      <h3 style="font-weight:800;margin-bottom:16px;color:var(--orange)">DM a User via Bot</h3>
+      <div class="form-group"><label class="form-label">User ID</label><input id="sa-dmuid" placeholder="Discord User ID"/></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea id="sa-dmmsg" rows="4"></textarea></div>
+      <button class="btn btn-owner" onclick="saDM()">✉ Send DM</button>
+    </div>`;
+
+  if (saTab === 'presence') return `
+    <div class="card" style="max-width:480px;border-color:rgba(249,115,22,.3)">
+      <h3 style="font-weight:800;margin-bottom:16px;color:var(--orange)">Bot Presence</h3>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select id="sa-status"><option>online</option><option>idle</option><option>dnd</option><option>invisible</option></select></div>
+      <div class="form-group"><label class="form-label">Activity Type</label>
+        <select id="sa-atype"><option>PLAYING</option><option>LISTENING</option><option>WATCHING</option><option>COMPETING</option><option>STREAMING</option></select></div>
+      <div class="form-group"><label class="form-label">Activity Text</label><input id="sa-atext" placeholder="Beat battles | /help"/></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:14px;font-size:13px">
+        <span id="sa-status-dot" style="width:10px;height:10px;border-radius:50%;background:var(--green)"></span>
+        <span id="sa-preview" style="color:var(--text2)">Playing <strong>Beat battles | /help</strong></span>
+      </div>
+      <button class="btn btn-owner" onclick="saPresence()">⚡ Set Presence</button>
+    </div>`;
+
+  if (saTab === 'stats') return `<div id="sa-stats-wrap"><div class="spinner spin" style="margin:40px auto;display:block"></div></div>`;
+
+  if (saTab === 'servers') return `
+    <div>
+      <h3 style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text2)">All Servers (${saGuilds.length})</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
+        ${saGuilds.map(g=>`
+          <div class="card" style="padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:10px">
+              ${g.icon?`<img src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png" style="width:36px;height:36px;border-radius:8px"/>`:`<div style="width:36px;height:36px;border-radius:8px;background:var(--border2);display:flex;align-items:center;justify-content:center;font-weight:800">${g.name[0]}</div>`}
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.name}</div>
+                <div class="fm" style="font-size:11px;color:var(--text3)">${g.id}</div>
+                <div style="font-size:11px;color:var(--text2)">${(g.memberCount||0).toLocaleString()} members</div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="saLeave('${g.id}','${g.name.replace(/'/g,"\\'")}')">Leave</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  return '';
+}
+
+function toggleSaEmbed() {
+  const show = document.getElementById('sa-embed-fields').style.display === 'none';
+  document.getElementById('sa-embed-fields').style.display = show ? 'block' : 'none';
+  document.getElementById('sa-embed-toggle').className = `btn btn-sm ${show?'btn-primary':'btn-ghost'}`;
+  document.getElementById('sa-embed-toggle').textContent = show ? '✓ Embed ON' : 'Use Embed';
+}
+
+async function loadSaChannels(guildId) {
+  if (!guildId) { saChannels=[]; return; }
+  saChannels = await GET(`/api/sa/guilds/${guildId}/channels`).catch(()=>[]);
+  const sel = document.getElementById('sa-cid');
+  if (sel) sel.innerHTML = `<option value="">— Select channel —</option>${saChannels.map(c=>`<option value="${c.id}">#${c.name}</option>`).join('')}`;
+}
+
+async function saSend() {
+  const channelId = document.getElementById('sa-cid')?.value;
+  const content = document.getElementById('sa-msg')?.value;
+  const embedOn = document.getElementById('sa-embed-fields')?.style.display !== 'none';
+  const embed = embedOn ? { title:$('sa-etitle'), description:$('sa-edesc'), color:parseInt($('sa-ecolor').replace('#',''),16) } : undefined;
+  if (!channelId || (!content && !embed)) return notify('Fill in channel and message','error');
+  await POST('/api/sa/say', { channelId, guildId:$('sa-gid'), content:content||undefined, embed }).catch(e=>notify(e.message,'error'));
+  notify('Message sent! ⚡');
+}
+
+async function saBroadcast() {
+  if (!confirm(`Broadcast to all ${saGuilds.length} servers?`)) return;
+  const res = await POST('/api/sa/broadcast', { content:$('sa-bmsg'), channelName:$('sa-bchan') }).catch(e=>{notify(e.message,'error');return null;});
+  if (res) notify(`Sent to ${res.sent} servers (${res.failed} failed)`);
+}
+
+async function saDM() {
+  await POST('/api/sa/dm', { userId:$('sa-dmuid'), content:$('sa-dmmsg') }).catch(e=>notify(e.message,'error'));
+  notify('DM sent!');
+}
+
+async function saPresence() {
+  await POST('/api/sa/presence', { status:$('sa-status'), activityType:$('sa-atype'), activityText:$('sa-atext') }).catch(e=>notify(e.message,'error'));
+  notify('Presence updated!');
+}
+
+async function saLeave(guildId, name) {
+  if (!confirm(`Leave ${name}?`)) return;
+  await POST(`/api/sa/guilds/${guildId}/leave`);
+  saGuilds = saGuilds.filter(g=>g.id!==guildId);
+  drawSuperAdmin();
+  notify(`Left ${name}`);
+}
+
+// load stats when tab opens
+const _origDrawSA = drawSuperAdmin;
+async function loadSaStats() {
+  const wrap = document.getElementById('sa-stats-wrap');
+  if (!wrap) return;
+  const stats = await GET('/api/sa/botstats').catch(()=>null);
+  if (!stats) { wrap.innerHTML = `<p style="color:var(--text3)">Bot unreachable</p>`; return; }
+  wrap.innerHTML = `<div class="stats-grid">
+    ${stat('Servers',stats.guilds,'var(--cyan)','🏠')}
+    ${stat('Users',stats.users,'var(--accent2)','👥')}
+    ${stat('Uptime',stats.uptime,'var(--green)','⏱')}
+    ${stat('Memory',stats.memory,'var(--yellow)','💾')}
+    ${stat('Ping',stats.ping,'var(--cyan)','📡')}
+  </div>`;
+}
+
+// Hook stats loading
+const origDraw = drawSuperAdmin;
+function drawSuperAdmin() {
+  origDraw.call(this);
+  if (saTab === 'stats') setTimeout(loadSaStats, 50);
+  if (saTab === 'presence') {
+    const sdot = document.getElementById('sa-status-dot');
+    const sprev = document.getElementById('sa-preview');
+    if (sdot && sprev) {
+      document.getElementById('sa-status').onchange = e => {
+        const colors={online:'var(--green)',idle:'var(--yellow)',dnd:'var(--red)',invisible:'var(--text3)'};
+        sdot.style.background = colors[e.target.value]||'var(--green)';
+      };
+      const updatePreview = () => {
+        const type = document.getElementById('sa-atype')?.value||'PLAYING';
+        const text = document.getElementById('sa-atext')?.value||'...';
+        if(sprev) sprev.innerHTML = `${type.charAt(0)+type.slice(1).toLowerCase()} <strong>${text}</strong>`;
+      };
+      document.getElementById('sa-atype')?.addEventListener('input',updatePreview);
+      document.getElementById('sa-atext')?.addEventListener('input',updatePreview);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function $(id) { return document.getElementById(id)?.value ?? ''; }
+
+// Stop music poll when leaving music panel
+const _nav = navigate;
+function navigate(panel) {
+  if (S.panel === 'music' && panel !== 'music' && musicPoll) { clearInterval(musicPoll); musicPoll = null; }
+  _nav(panel);
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
